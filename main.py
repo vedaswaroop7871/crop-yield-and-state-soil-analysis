@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-# Load Data
+# Loading Data
 df = pd.read_csv('crop_yield.csv')
 
 st.title("Hello , welcome to the Crop Yield Analysis App! Let's start by exploring the data.")
@@ -12,10 +12,10 @@ from st_aggrid import AgGrid, GridOptionsBuilder
 
 st.header("📊 Interactive Data Explorer")
 
-# 1. Setup the Grid Options
+# Setup the Grid Options
 gb = GridOptionsBuilder.from_dataframe(df)
 
-# 2. This enables the 'Three Dots' (Filter & Sort) for every column
+# This enables the 'Three Dots' (Filter & Sort) for every column
 gb.configure_default_column(
     filterable=True, 
     sortable=True, 
@@ -23,14 +23,12 @@ gb.configure_default_column(
     groupable=True
 )
 
-# 3. This ensures all rows are "selected" and interactive
+# This ensures all rows are "selected" and interactive
 gb.configure_selection(selection_mode="multiple", use_checkbox=True)
 
-# 4. Build the options and display
+# Build the options and display
 gridOptions = gb.build()
 
-# The 'UpdateMode' ensures that if you filter in the table, 
-# you can use that filtered data for other things.
 response = AgGrid(
     df, 
     gridOptions=gridOptions,
@@ -67,8 +65,8 @@ st.subheader("How variables relate to each other")
 numeric_df = df.select_dtypes(include=['float64', 'int64'])
 corr = numeric_df.corr()
 fig_corr = px.imshow(corr, text_auto=True, aspect="auto", 
-                     color_continuous_scale='Viridis',
-                     title="Correlation Heatmap")
+    color_continuous_scale='Viridis',
+    title="Correlation Heatmap")
 st.plotly_chart(fig_corr)
 
 # 2. Yield vs Fertilizer (Interactive Scatter)
@@ -81,13 +79,13 @@ st.subheader("Fertilizer vs Yield Impact")
 
 # Using the columns we KNOW you have
 fig_scatter = px.scatter(filtered_df, 
-                         x="fertilizer", # Changed from Annual_Rainfall
-                         y="yield", 
-                         color="season", 
-                         size="area",
-                         hover_data=['pesticide', 'state'],
-                         title=f"Fertilizer usage vs Yield for {selected_crop}",
-                         template="plotly_white")
+    x="fertilizer", # Changed from Annual_Rainfall
+    y="yield", 
+    color="season", 
+    size="area",
+    hover_data=['pesticide', 'state'],
+    title=f"Fertilizer usage vs Yield for {selected_crop}",
+    template="plotly_white")
 st.plotly_chart(fig_scatter)
 
 
@@ -102,11 +100,11 @@ top_5_crops = crop_production.sort_values(by='production', ascending=False).head
 
 # 2. Create the Plotly Pie Chart
 fig_pie = px.pie(top_5_crops, 
-                 values='production', 
-                 names='crop', 
-                 title='Top 5 Crops Contributing to Total Production',
-                 hole=0.4, # This makes it a "Donut" chart, which looks more modern
-                 color_discrete_sequence=px.colors.qualitative.Pastel)
+    values='production', 
+    names='crop', 
+    title='Top 5 Crops Contributing to Total Production',
+    hole=0.4, # This makes it a "Donut" chart, which looks more modern
+    color_discrete_sequence=px.colors.qualitative.Pastel)
 fig_pie.update_traces(textposition='inside', textinfo='percent+label')
 
 st.plotly_chart(fig_pie)
@@ -121,12 +119,12 @@ top_10_states = state_yield.sort_values(by='yield', ascending=False).head(10)
 
 # 2. Create the Plotly Bar Chart
 fig_bar = px.bar(top_10_states, 
-                 x='state', 
-                 y='yield',
-                 text_auto='.2s', # Shows the value on top of the bar
-                 title='Top 10 States with Highest Average Yield',
-                 color='yield', # This creates a gradient color effect
-                 color_continuous_scale='Greens')
+    x='state', 
+    y='yield',
+    text_auto='.2s', # Shows the value on top of the bar
+    title='Top 10 States with Highest Average Yield',
+    color='yield', # This creates a gradient color effect
+    color_continuous_scale='Greens')
 
 st.plotly_chart(fig_bar)
 
@@ -167,7 +165,7 @@ st.write(f"year range is {year_max} -{year_min} years")
 
 
 
-#ritesh
+
 st.header("Time-Series Analysis (1997 - 2020)")
 
 # 1. Prepare the data: Filter years and Group by Year
@@ -175,42 +173,42 @@ st.header("Time-Series Analysis (1997 - 2020)")
 df_years = df[(df['year'] >= 1997) & (df['year'] <= 2020)]
 yearly_summary = df_years.groupby('year').sum().reset_index()
 
-# --- Visual 1: Crop Production Trend ---
+# 2. Crop Production Trend 
 st.subheader("1. Total Crop Production Over the Years")
 
 fig_prod = px.line(yearly_summary, 
     x='year', 
-                   y='production', 
-                   title='Total Production Trend (1997-2020)',
-                   markers=True, # Adds dots on each year
-                   line_shape='spline', # Makes the line smooth/curvy
-                   render_mode='svg')
+    y='production', 
+    title='Total Production Trend (1997-2020)',
+    markers=True, # Adds dots on each year
+    line_shape='spline', # Makes the line smooth/curvy
+    render_mode='svg')
 
-# Add a range slider for a "Pro" look
+
 fig_prod.update_xaxes(rangeslider_visible=True)
 fig_prod.update_traces(line_color='#2ca02c') # Green for production
 
 st.plotly_chart(fig_prod)
 
-# --- Visual 2: Fertilizer and Pesticide Usage ---
+# 3. Fertilizer and Pesticide Usage 
 st.subheader("2. Fertilizer & Pesticide Usage Trends")
 
 # We use 'melt' to put Fertilizer and Pesticide in the same chart for comparison
 usage_data = yearly_summary.melt(id_vars='year', 
-                                 value_vars=['fertilizer', 'pesticide'],
-                                 var_name='Input Type', 
-                                 value_name='Usage Amount')
+        value_vars=['fertilizer', 'pesticide'],
+        var_name='Input Type', 
+        value_name='Usage Amount')
 
 fig_usage = px.line(usage_data, 
-                    x='year', 
-                    y='Usage Amount', 
-                    color='Input Type',
-                    title='Comparison: Fertilizer vs Pesticide Use',
-                    markers=True,
-                    color_discrete_map={
-                        "fertilizer": "#ff7f0e", # Orange
-                        "pesticide": "#d62728"   # Red
-                    })
+        x='year', 
+        y='Usage Amount', 
+        color='Input Type',
+        title='Comparison: Fertilizer vs Pesticide Use',
+        markers=True,
+        color_discrete_map={
+            "fertilizer": "#ff7f0e", # Orange
+            "pesticide": "#d62728"   # Red
+        })
 
 st.plotly_chart(fig_usage)
 
@@ -221,11 +219,11 @@ st.write("Calculated Yield (production/area) added to the dataset for outlier an
 st.subheader("Identifying Yield Outliers by Season")
 
 fig_box = px.box(df, 
-                 x="season", 
-                 y="Calculated_Yield", 
-                 color="season",
-                 title="Yield Distribution across Seasons",
-                 points="outliers") # This highlights the weird data points
+    x="season", 
+    y="Calculated_Yield", 
+    color="season",
+    title="Yield Distribution across Seasons",
+    points="outliers") # This highlights the weird data points
 
 st.plotly_chart(fig_box)
 
@@ -250,7 +248,7 @@ gb_soil.configure_default_column(
     groupable=True
 )
 
-# 3. Optional: Make the pH column specific (e.g., filter by number ranges)
+# 3. Make the pH column specific (e.g., filter by number ranges)
 gb_soil.configure_column("ph", type=["numericColumn","numberColumnFilter"])
 
 # 4. Build and Display
@@ -260,7 +258,7 @@ response_soil = AgGrid(
     soil_df, 
     gridOptions=gridOptions_soil,
     height=400, 
-    theme='balham', # 'balham' is a slightly tighter, more professional Excel look
+    theme='balham', 
     enable_enterprise_modules=False
 )
 
@@ -290,10 +288,10 @@ merged_df = pd.merge(df, state_soil, on='state', how='left')
 print(state_soil)
 st.subheader("State-wise Nutrient Profile (N-P-K)")
 fig_soil_heat = px.imshow(state_soil.set_index('state'), #to create heatmap
-                          text_auto=True, 
-                          color_continuous_scale='YlGn',
-                          height=800,
-                          title="Average Nitrogen, Phosphorus, and Potassium by State")
+    text_auto=True, 
+    color_continuous_scale='YlGn',
+    height=800,
+    title="Average Nitrogen, Phosphorus, and Potassium by State")
                           
 st.plotly_chart(fig_soil_heat, use_container_width=True)
 
@@ -311,18 +309,18 @@ soil_df['ph_category'] = soil_df['ph'].apply(categorize_ph)
 
 # 2. Plot with color assigned to the category
 fig_ph = px.histogram(soil_df, 
-                      x="ph", 
-                      color="ph_category", # This gives different colors
-                      nbins=20, 
-                      histnorm='percent',
-                      title="Distribution of Soil pH Levels",
-                      # We can manually set the colors: Red for Acid, Green for Neutral, Blue for Alkaline
-                      color_discrete_map={
-                          "Acidic": "#e74c3c", 
-                          "Neutral": "#2ecc71", 
-                          "Alkaline": "#3498db"
-                      },
-                      category_orders={"ph_category": ["Acidic", "Neutral", "Alkaline"]})
+    x="ph", 
+    color="ph_category", # This gives different colors
+    nbins=20, 
+    histnorm='percent',
+    title="Distribution of Soil pH Levels",
+    # We can manually set the colors: Red for Acid, Green for Neutral, Blue for Alkaline
+    color_discrete_map={
+        "Acidic": "#e74c3c", 
+        "Neutral": "#2ecc71", 
+        "Alkaline": "#3498db"
+    },
+    category_orders={"ph_category": ["Acidic", "Neutral", "Alkaline"]})
 
 # Add a line for "Neutral" pH (7.0)
 fig_ph.add_vline(x=7.0, line_dash="dash", line_color="black", annotation_text="Ideal Neutral")
@@ -339,12 +337,12 @@ crop_soil_deps = merged_df.groupby('crop')[['n', 'p', 'k']].mean().reset_index()
 melted_deps = crop_soil_deps.melt(id_vars='crop', var_name='Nutrient', value_name='Average_Soil_Level')
 
 fig_deps = px.bar(melted_deps, 
-                  x='crop', 
-                  y='Average_Soil_Level', 
-                  color='Nutrient',
-                  barmode='group',
-                  title="Average Soil Nutrient Levels by Crop Type",
-                  color_discrete_map={'n': '#2ecc71', 'p': '#3498db', 'k': '#9b59b6'})
+    x='crop', 
+    y='Average_Soil_Level', 
+    color='Nutrient',
+    barmode='group',
+    title="Average Soil Nutrient Levels by Crop Type",
+    color_discrete_map={'n': '#2ecc71', 'p': '#3498db', 'k': '#9b59b6'})
 
 st.plotly_chart(fig_deps, use_container_width=True)
 
